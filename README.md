@@ -26,7 +26,7 @@ The included `render.yaml` can create the service using Render Blueprint.
    - Install command: `npm ci`
    - Build command: `npm run build`
    - Output directory: `dist`
-3. Set `VITE_API_BASE_URL=/api` to use the Vercel server-side proxy.
+3. Set `VITE_API_BASE_URL=https://<actual-render-service>.onrender.com`.
 4. Redeploy after setting the variable.
 
 The included `vercel.json` is for repository-root configuration. When Vercel root directory is set to `frontend`, equivalent settings can be entered directly in the Vercel dashboard.
