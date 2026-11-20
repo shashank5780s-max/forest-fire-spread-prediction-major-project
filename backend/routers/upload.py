@@ -1,0 +1,108 @@
+import os
+from pathlib import Path
+import rasterio
+from PIL import Image
+from typing import List
+from fastapi import APIRouter, HTTPException, UploadFile, File
+from typing import Annotated
+from fastapi.openapi.utils import get_openapi
+
+router = APIRouter(prefix="/upload", tags=["upload"])
+
+PROJECT_ROOT = Path(__file__).resolve().parents[2]
+UPLOAD_DIR = PROJECT_ROOT / "uploads"
+MAX_FILE_SIZE = 50 * 1024 * 1024  # 50 MB
+ALLOWED_EXTENSIONS = (".tif", ".tiff", ".jpg", ".jpeg")
+
+@router.post("")
+async def upload_files(
+    files: Annotated[List[UploadFile], File(description="Select exactly five TIFF images")]
+):
+    for file in files:
+        if not file.filename.lower().endswith(ALLOWED_EXTENSIONS):
+            raise HTTPException(
+                status_code=400,
+                detail="Only TIFF, TIF, JPG, and JPEG images are allowed."
+            )
+    # 1. Exactly five images
+    if len(files) != 5:
+        raise HTTPException(status_code=400, detail=f"Expected exactly 5 images, but got {len(files)}.")
+        
+    # 2. All filenames unique
+    filenames = [f.filename for f in files]
+    if len(set(filenames)) != 5:
+        raise HTTPException(status_code=400, detail="All filenames must be unique.")
+        
+    # 3. Read contents and check basic limits/extensions
+    file_contents = []
+    for file in files:
+        ext = os.path.splitext(file.filename)[1].lower()
+        if ext not in ALLOWED_EXTENSIONS:
+            raise HTTPException(status_code=415, detail=f"Unsupported file type: {ext}. Only .tif, .tiff, .jpg, and .jpeg are allowed.")
+            
+        content = await file.read()
+        if len(content) > MAX_FILE_SIZE:
+            raise HTTPException(status_code=400, detail=f"File {file.filename} exceeds the maximum allowed size of 50MB.")
+        if len(content) == 0:
+            raise HTTPException(status_code=422, detail=f"File {file.filename} is empty.")
+            
+        file_contents.append((file.filename, content))
+        
+    # 4. Clear previous uploads
+    if UPLOAD_DIR.exists():
+        try:
+            for f in UPLOAD_DIR.iterdir():
+                file_path = f
+                if file_path.is_file():
+                    os.remove(file_path)
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=f"Failed to clear previous uploads: {str(e)}")
+    else:
+        UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
+        
+    # 5. Save and validate dimensions/readability
+    saved_paths = []
+    first_image_shape = None
+    
+    try:
+        for filename, content in file_contents:
+            file_path = UPLOAD_DIR / filename
+            
+            with open(file_path, "wb") as f:
+                f.write(content)
+            saved_paths.append(file_path)
+            
+            # Validate readable and dimensions
+            try:
+                if ext in (".jpg", ".jpeg"):
+                    with Image.open(file_path) as image:
+                        image.verify()
+                    with Image.open(file_path) as image:
+                        shape = (image.height, image.width)
+                else:
+                    with rasterio.open(file_path) as src:
+                        shape = (src.height, src.width)
+
+                if first_image_shape is None:
+                    first_image_shape = shape
+                elif shape != first_image_shape:
+                    raise HTTPException(status_code=422, detail=f"Images must have the same dimensions. Expected {first_image_shape}, got {shape} for {filename}.")
+            except (rasterio.errors.RasterioIOError, Image.UnidentifiedImageError):
+                raise HTTPException(status_code=422, detail=f"File {filename} is not a valid or readable image.")
+                
+    except HTTPException as e:
+        for path in saved_paths:
+            if path.exists():
+                os.remove(path)
+        raise e
+    except Exception as e:
+        for path in saved_paths:
+            if path.exists():
+                os.remove(path)
+        raise HTTPException(status_code=500, detail=f"An unexpected error occurred: {str(e)}")
+        
+    return {
+        "status": "success",
+        "uploaded_images": 5,
+        "directory": "backend/uploads/"
+    }

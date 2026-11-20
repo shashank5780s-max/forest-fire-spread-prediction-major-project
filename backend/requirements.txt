@@ -1,0 +1,13 @@
+fastapi
+uvicorn
+torch
+torchvision
+rasterio
+opencv-python
+numpy
+pandas
+pydantic
+pydantic-settings
+python-multipart
+segmentation-models-pytorch
+matplotlib
