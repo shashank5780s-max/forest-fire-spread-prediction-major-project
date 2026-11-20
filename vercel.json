@@ -3,11 +3,19 @@
   "installCommand": "npm ci --prefix frontend",
   "buildCommand": "npm run build --prefix frontend",
   "outputDirectory": "frontend/dist",
-  "framework": "vite",
   "rewrites": [
+    {
+      "source": "/api/:path*",
+      "destination": "https://firecast-backend.onrender.com/:path*"
+    },
+    {
+      "source": "/outputs/:path*",
+      "destination": "https://firecast-backend.onrender.com/outputs/:path*"
+    },
     {
       "source": "/(.*)",
       "destination": "/index.html"
     }
-  ]
+  ],
+  "framework": "vite"
 }
