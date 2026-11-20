@@ -23,7 +23,8 @@ The included `render.yaml` can create the service using Render Blueprint.
 2. Set:
    - Framework preset: `Vite`
    - Root directory: `frontend`
-   - Build command: `npm ci && npm run build`
+   - Install command: `npm ci`
+   - Build command: `npm run build`
    - Output directory: `dist`
 3. Set `VITE_API_BASE_URL` to the Render service origin, for example:
    `https://firecast-backend.onrender.com`
