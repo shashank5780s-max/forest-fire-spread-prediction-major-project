@@ -5,7 +5,8 @@ import { motion, useReducedMotion } from 'framer-motion';
 import { loadPredictionLayers, RasterCanvas } from '../utils/resultsRaster';
 
 const ThermalSurfaceScene = lazy(() => import('../components/ThermalSurfaceScene'));
-const OUTPUT_BASE = 'http://127.0.0.1:8000';
+const API_BASE = (import.meta.env.VITE_API_BASE_URL || '').replace(/\/$/, '');
+const OUTPUT_BASE = API_BASE || '';
 const MIN_DIRECTION_DISPLACEMENT_PX = 0.5;
 const COMPASS_DIRECTIONS = ['North', 'North-East', 'East', 'South-East', 'South', 'South-West', 'West', 'North-West'];
 

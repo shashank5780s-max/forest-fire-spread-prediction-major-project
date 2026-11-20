@@ -74,6 +74,7 @@ async def upload_files(
             
             # Validate readable and dimensions
             try:
+                ext = os.path.splitext(filename)[1].lower()
                 if ext in (".jpg", ".jpeg"):
                     with Image.open(file_path) as image:
                         image.verify()
