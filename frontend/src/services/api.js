@@ -2,7 +2,7 @@
 import axios from 'axios';
 
 const configuredApiBaseUrl = (import.meta.env.VITE_API_BASE_URL || '').trim().replace(/\/$/, '');
-const API_BASE_URL = configuredApiBaseUrl;
+const API_BASE_URL = configuredApiBaseUrl || 'https://firecast-backend.onrender.com';
 
 const api = axios.create({
   baseURL: API_BASE_URL,
@@ -10,11 +10,7 @@ const api = axios.create({
 });
 
 const requireApiBaseUrl = () => {
-  if (!API_BASE_URL) {
-    throw new Error(
-      'VITE_API_BASE_URL is not configured. Set it in Vercel to the Render backend External URL.'
-    );
-  }
+  if (!API_BASE_URL) throw new Error('The backend API URL is not configured.');
 };
 
 export const uploadImages = async (files, onUploadProgress) => {

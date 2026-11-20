@@ -6,7 +6,7 @@ import { loadPredictionLayers, RasterCanvas } from '../utils/resultsRaster';
 
 const ThermalSurfaceScene = lazy(() => import('../components/ThermalSurfaceScene'));
 const configuredApiBaseUrl = (import.meta.env.VITE_API_BASE_URL || '').trim().replace(/\/$/, '');
-const API_BASE = configuredApiBaseUrl;
+const API_BASE = configuredApiBaseUrl || 'https://firecast-backend.onrender.com';
 const OUTPUT_BASE = API_BASE;
 const MIN_DIRECTION_DISPLACEMENT_PX = 0.5;
 const COMPASS_DIRECTIONS = ['North', 'North-East', 'East', 'South-East', 'South', 'South-West', 'West', 'North-West'];
